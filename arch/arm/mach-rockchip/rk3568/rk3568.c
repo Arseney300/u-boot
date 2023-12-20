@@ -39,12 +39,12 @@ enum {
 	GPIO0C1_SHIFT		= 4,
 	GPIO0C1_MASK		= GENMASK(6, 4),
 	GPIO0C1_GPIO		= 0,
-	GPIO0C1_UART0_TX	= 3,
+	GPIO0C1_UART0_M0_TX	= 3,
 
 	GPIO0C0_SHIFT		= 0,
 	GPIO0C0_MASK		= GENMASK(2, 0),
 	GPIO0C0_GPIO		= 0,
-	GPIO0C0_UART0_RX	= 3,
+	GPIO0C0_UART0_M0_RX	= 3,
 
 	/* PMU_GRF_GPIO0D_IOMUX_L */
 	GPIO0D1_SHIFT		= 4,
@@ -315,6 +315,158 @@ enum {
 	UART0_IO_SEL_M2,
 };
 
+
+#define GLUE(a,b) a##b
+
+#define SELECT_UART(name, name_m) \
+      rk_clrsetreg(&name##_##name_m##_SEL_REGISTER, name##_IO_SEL_MASK, \
+         name##_IO_SEL_##name_m << name##_IO_SEL_SHIFT);
+
+#define SWITCH_IOMUX_RX_GPIO(name, name_m) \
+    name##_##name_m##_RX_GPIO
+
+#define SWITCH_IOMUX_TX_GPIO(name, name_m) \
+    name##_##name_m##_TX_GPIO
+
+#define SWITCH_IOMUX_GPIO_UART_M(gpio, name, name_m) \
+  GLUE(gpio,_##name##_##name_m)
+
+#define SWITCH_IOMUX_GPIO_UART_M_RX(gpio_uart_m) \
+  GLUE(gpio_uart_m, _RX)
+
+#define SWITCH_IOMUX_GPIO_UART_M_TX(gpio_uart_m) \
+  GLUE(gpio_uart_m, _TX)
+
+#define SWITCH_IOMUX_MASK(name) \
+    GLUE(name, _MASK)
+
+#define SWITCH_IOMUX_SHIFT(name) \
+  GLUE(name, _SHIFT)
+
+#define SWITCH_IOMUX_RX(name, name_m) \
+      rk_clrsetreg(&name##_##name_m##_RX_IOMUX_REGISTER, \
+         SWITCH_IOMUX_MASK(SWITCH_IOMUX_RX_GPIO(name, name_m)), \
+             SWITCH_IOMUX_GPIO_UART_M_RX(SWITCH_IOMUX_GPIO_UART_M(SWITCH_IOMUX_RX_GPIO(name, name_m), name, name_m)) \
+			  << SWITCH_IOMUX_SHIFT(SWITCH_IOMUX_RX_GPIO(name, name_m)));
+
+#define SWITCH_IOMUX_TX(name, name_m) \
+      rk_clrsetreg(&name##_##name_m##_RX_IOMUX_REGISTER, \
+         SWITCH_IOMUX_MASK(SWITCH_IOMUX_TX_GPIO(name, name_m)), \
+             SWITCH_IOMUX_GPIO_UART_M_TX(SWITCH_IOMUX_GPIO_UART_M(SWITCH_IOMUX_TX_GPIO(name, name_m), name, name_m)) \
+			 << SWITCH_IOMUX_SHIFT(SWITCH_IOMUX_TX_GPIO(name, name_m)));
+
+#define UART0_M0_RX_GPIO GPIO0C0
+#define UART0_M0_TX_GPIO GPIO0C1
+#define UART1_M0_RX_GPIO GPIO2B3
+#define UART1_M0_TX_GPIO GPIO2B4
+#define UART1_M1_RX_GPIO GPIO3D7
+#define UART1_M1_TX_GPIO GPIO3D6
+#define UART2_M0_RX_GPIO GPIO0D0
+#define UART2_M0_TX_GPIO GPIO0D1
+#define UART2_M1_RX_GPIO GPIO1D6
+#define UART2_M1_TX_GPIO GPIO1D5
+#define UART3_M0_RX_GPIO GPIO1A0
+#define UART3_M0_TX_GPIO GPIO1A1
+#define UART3_M1_RX_GPIO GPIO3C0
+#define UART3_M1_TX_GPIO GPIO3B7
+#define UART4_M0_RX_GPIO GPIO1A4
+#define UART4_M0_TX_GPIO GPIO1A6
+#define UART4_M1_RX_GPIO GPIO3B1
+#define UART4_M1_TX_GPIO GPIO3B2
+#define UART5_M0_RX_GPIO GPIO2A1
+#define UART5_M0_TX_GPIO GPIO2A2
+#define UART5_M1_RX_GPIO GPIO3C3
+#define UART5_M1_TX_GPIO GPIO3C2
+#define UART6_M0_RX_GPIO GPIO2A3
+#define UART6_M0_TX_GPIO GPIO2A4
+#define UART6_M1_RX_GPIO GPIO1D6
+#define UART6_M1_TX_GPIO GPIO1D5
+#define UART7_M0_RX_GPIO GPIO2A5
+#define UART7_M0_TX_GPIO GPIO2A6
+#define UART7_M1_RX_GPIO GPIO3C5
+#define UART7_M1_TX_GPIO GPIO3C4
+#define UART7_M2_RX_GPIO GPIO4A3
+#define UART7_M2_TX_GPIO GPIO4A2
+#define UART8_M0_RX_GPIO GPIO2C6
+#define UART8_M0_TX_GPIO GPIO2C5
+#define UART8_M1_RX_GPIO GPIO3A0
+#define UART8_M1_TX_GPIO GPIO2D7
+#define UART9_M0_RX_GPIO GPIO2A7
+#define UART9_M0_TX_GPIO GPIO2B0
+#define UART9_M1_RX_GPIO GPIO4C6
+#define UART9_M1_TX_GPIO GPIO4C5
+#define UART9_M2_RX_GPIO GPIO4A5
+#define UART9_M2_TX_GPIO GPIO4A4
+
+#define GRF_PTR ((struct rk3568_grf * const)(GRF_BASE))
+#define PMUGRF_PTR ((struct rk3568_pmugrf * const)(PMUGRF_BASE))
+
+#define UART0_M0_SEL_REGISTER PMUGRF_PTR->pmu_soc_con0
+#define UART1_M0_SEL_REGISTER GRF_PTR->iofunc_sel3
+#define UART1_M1_SEL_REGISTER GRF_PTR->iofunc_sel3
+#define UART2_M0_SEL_REGISTER GRF_PTR->iofunc_sel3
+#define UART2_M1_SEL_REGISTER GRF_PTR->iofunc_sel3
+#define UART3_M0_SEL_REGISTER GRF_PTR->iofunc_sel3
+#define UART3_M1_SEL_REGISTER GRF_PTR->iofunc_sel3
+#define UART4_M0_SEL_REGISTER GRF_PTR->iofunc_sel3
+#define UART4_M1_SEL_REGISTER GRF_PTR->iofunc_sel3
+#define UART5_M0_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART5_M1_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART6_M0_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART6_M1_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART7_M0_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART7_M1_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART7_M2_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART8_M0_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART8_M1_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART9_M0_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART9_M1_SEL_REGISTER GRF_PTR->iofunc_sel4
+#define UART9_M2_SEL_REGISTER GRF_PTR->iofunc_sel4
+
+#define UART0_M0_RX_IOMUX_REGISTER PMUGRF_PTR->pmu_gpio0c_iomux_l
+#define UART0_M0_TX_IOMUX_REGISTER PMUGRF_PTR->pmu_gpio0c_iomux_l
+#define UART1_M0_RX_IOMUX_REGISTER GRF_PTR->gpio2b_iomux_l
+#define UART1_M0_TX_IOMUX_REGISTER GRF_PTR->gpio2b_iomux_h
+#define UART1_M1_RX_IOMUX_REGISTER GRF_PTR->gpio3d_iomux_h
+#define UART1_M1_TX_IOMUX_REGISTER GRF_PTR->gpio3d_iomux_h
+#define UART2_M0_RX_IOMUX_REGISTER GRF_PTR->gpio0d_iomux_l
+#define UART2_M0_TX_IOMUX_REGISTER GRF_PTR->gpio0d_iomux_l
+#define UART2_M1_RX_IOMUX_REGISTER GRF_PTR->gpio1d_iomux_h
+#define UART2_M1_TX_IOMUX_REGISTER GRF_PTR->gpio1d_iomux_h
+#define UART3_M0_RX_IOMUX_REGISTER GRF_PTR->gpio1a_iomux_l
+#define UART3_M0_TX_IOMUX_REGISTER GRF_PTR->gpio1a_iomux_l
+#define UART3_M1_RX_IOMUX_REGISTER GRF_PTR->gpio3c_iomux_l
+#define UART3_M1_TX_IOMUX_REGISTER GRF_PTR->gpio3b_iomux_h
+#define UART4_M0_RX_IOMUX_REGISTER GRF_PTR->gpio1a_iomux_h
+#define UART4_M0_TX_IOMUX_REGISTER GRF_PTR->gpio1a_iomux_h
+#define UART4_M1_RX_IOMUX_REGISTER GRF_PTR->gpio3b_iomux_l
+#define UART4_M1_TX_IOMUX_REGISTER GRF_PTR->gpio3b_iomux_l
+#define UART5_M0_RX_IOMUX_REGISTER GRF_PTR->gpio2a_iomux_l
+#define UART5_M0_TX_IOMUX_REGISTER GRF_PTR->gpio2a_iomux_l
+#define UART5_M1_RX_IOMUX_REGISTER GRF_PTR->gpio3c_iomux_l
+#define UART5_M1_TX_IOMUX_REGISTER GRF_PTR->gpio3c_iomux_l
+#define UART6_M0_RX_IOMUX_REGISTER GRF_PTR->gpio2a_iomux_l
+#define UART6_M0_TX_IOMUX_REGISTER GRF_PTR->gpio2a_iomux_h
+#define UART6_M1_RX_IOMUX_REGISTER GRF_PTR->gpio1d_iomux_h
+#define UART6_M1_TX_IOMUX_REGISTER GRF_PTR->gpio1d_iomux_h
+#define UART7_M0_RX_IOMUX_REGISTER GRF_PTR->gpio2a_iomux_h
+#define UART7_M0_TX_IOMUX_REGISTER GRF_PTR->gpio2a_iomux_h
+#define UART7_M1_RX_IOMUX_REGISTER GRF_PTR->gpio3c_iomux_h
+#define UART7_M1_TX_IOMUX_REGISTER GRF_PTR->gpio3c_iomux_h
+#define UART7_M2_RX_IOMUX_REGISTER GRF_PTR->gpio4a_iomux_l
+#define UART7_M2_TX_IOMUX_REGISTER GRF_PTR->gpio4a_iomux_l
+#define UART8_M0_RX_IOMUX_REGISTER GRF_PTR->gpio2c_iomux_h
+#define UART8_M0_TX_IOMUX_REGISTER GRF_PTR->gpio2c_iomux_h
+#define UART8_M1_RX_IOMUX_REGISTER GRF_PTR->gpio2d_iomux_h
+#define UART8_M1_TX_IOMUX_REGISTER GRF_PTR->gpio2d_iomux_h
+#define UART9_M0_RX_IOMUX_REGISTER GRF_PTR->gpio2a_iomux_h
+#define UART9_M0_TX_IOMUX_REGISTER GRF_PTR->gpio2b_iomux_l
+#define UART9_M1_RX_IOMUX_REGISTER GRF_PTR->gpio4c_iomux_h
+#define UART9_M1_TX_IOMUX_REGISTER GRF_PTR->gpio4c_iomux_h
+#define UART9_M2_RX_IOMUX_REGISTER GRF_PTR->gpio4a_iomux_h
+#define UART9_M2_TX_IOMUX_REGISTER GRF_PTR->gpio4a_iomux_h
+
+
 static struct mm_region rk3568_mem_map[] = {
 	{
 		.virt = 0x0UL,
@@ -353,266 +505,38 @@ struct mm_region *mem_map = rk3568_mem_map;
 void board_debug_uart_init(void)
 {
 #if defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfdd50000)
-	static struct rk3568_pmugrf * const pmugrf = (void *)PMUGRF_BASE;
-	/* UART0 M0 */
-	rk_clrsetreg(&pmugrf->pmu_soc_con0, UART0_IO_SEL_MASK,
-		     UART0_IO_SEL_M0 << UART0_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&pmugrf->pmu_gpio0c_iomux_l,
-		     GPIO0C1_MASK | GPIO0C0_MASK,
-		     GPIO0C1_UART0_TX << GPIO0C1_SHIFT |
-		     GPIO0C0_UART0_RX << GPIO0C0_SHIFT);
-
+#define UART UART0
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe650000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	/* UART1 M0 */
-	rk_clrsetreg(&grf->iofunc_sel3, UART1_IO_SEL_MASK,
-		     UART1_IO_SEL_M0 << UART1_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio2b_iomux_l,
-		     GPIO2B3_MASK, GPIO2B3_UART1_RXM0 << GPIO2B3_SHIFT);
-	rk_clrsetreg(&grf->gpio2b_iomux_h,
-		     GPIO2B4_MASK, GPIO2B4_UART1_TXM0 << GPIO2B4_SHIFT);
-#else
-	/* UART1 M1 */
-	rk_clrsetreg(&grf->iofunc_sel3, UART1_IO_SEL_MASK,
-		     UART1_IO_SEL_M1 << UART1_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio3d_iomux_h,
-		     GPIO3D7_MASK | GPIO3D6_MASK,
-		     GPIO3D7_UART1_RXM1 << GPIO3D7_SHIFT |
-		     GPIO3D6_UART1_TXM1 << GPIO3D6_SHIFT);
-#endif
+#define UART UART1
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe660000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	static struct rk3568_pmugrf * const pmugrf = (void *)PMUGRF_BASE;
-	/* UART2 M0 */
-	rk_clrsetreg(&grf->iofunc_sel3, UART2_IO_SEL_MASK,
-		     UART2_IO_SEL_M0 << UART2_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&pmugrf->pmu_gpio0d_iomux_l,
-		     GPIO0D1_MASK | GPIO0D0_MASK,
-		     GPIO0D1_UART2_TXM0 << GPIO0D1_SHIFT |
-		     GPIO0D0_UART2_RXM0 << GPIO0D0_SHIFT);
-#else
-	/* UART2 M1 */
-	rk_clrsetreg(&grf->iofunc_sel3, UART2_IO_SEL_MASK,
-		     UART2_IO_SEL_M1 << UART2_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio1d_iomux_h,
-		     GPIO1D6_MASK | GPIO1D5_MASK,
-		     GPIO1D6_UART2_RXM1 << GPIO1D6_SHIFT |
-		     GPIO1D5_UART2_TXM1 << GPIO1D5_SHIFT);
-#endif
+#define UART UART2
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe670000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	/* UART3 M0 */
-	rk_clrsetreg(&grf->iofunc_sel3, UART3_IO_SEL_MASK,
-		     UART3_IO_SEL_M0 << UART3_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio1a_iomux_l,
-		     GPIO1A1_MASK | GPIO1A0_MASK,
-		     GPIO1A1_UART3_TXM0 << GPIO1A1_SHIFT |
-		     GPIO1A0_UART3_RXM0 << GPIO1A0_SHIFT);
-#else
-	/* UART3 M1 */
-	rk_clrsetreg(&grf->iofunc_sel3, UART3_IO_SEL_MASK,
-		     UART3_IO_SEL_M1 << UART3_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio3b_iomux_h,
-		     GPIO3B7_MASK, GPIO3B7_UART3_TXM1 << GPIO3B7_SHIFT);
-	rk_clrsetreg(&grf->gpio3c_iomux_l,
-		     GPIO3C0_MASK, GPIO3C0_UART3_RXM1 << GPIO3C0_SHIFT);
-#endif
+#define UART UART3
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe680000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	/* UART4 M0 */
-	rk_clrsetreg(&grf->iofunc_sel3, UART4_IO_SEL_MASK,
-		     UART4_IO_SEL_M0 << UART4_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio1a_iomux_h,
-		     GPIO1A6_MASK | GPIO1A4_MASK,
-		     GPIO1A6_UART4_TXM0 << GPIO1A6_SHIFT |
-		     GPIO1A4_UART4_RXM0 << GPIO1A4_SHIFT);
-#else
-	/* UART4 M1 */
-	rk_clrsetreg(&grf->iofunc_sel3, UART4_IO_SEL_MASK,
-		     UART4_IO_SEL_M1 << UART4_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio3b_iomux_l,
-		     GPIO3B2_MASK | GPIO3B1_MASK,
-		     GPIO3B2_UART4_TXM1 << GPIO3B2_SHIFT |
-		     GPIO3B1_UART4_RXM1 << GPIO3B1_SHIFT);
-#endif
+#define UART UART4
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe690000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	/* UART5 M0 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART5_IO_SEL_MASK,
-		     UART5_IO_SEL_M0 << UART5_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio2a_iomux_l,
-		     GPIO2A2_MASK | GPIO2A1_MASK,
-		     GPIO2A2_UART5_TXM0 << GPIO2A2_SHIFT |
-		     GPIO2A1_UART5_RXM0 << GPIO2A1_SHIFT);
-#else
-	/* UART5 M1 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART5_IO_SEL_MASK,
-		     UART5_IO_SEL_M1 << UART5_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio3c_iomux_l,
-		     GPIO3C3_MASK | GPIO3C2_MASK,
-		     GPIO3C3_UART5_RXM1 << GPIO3C3_SHIFT |
-		     GPIO3C2_UART5_TXM1 << GPIO3C2_SHIFT);
-#endif
+#define UART UART5
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe6a0000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	/* UART6 M0 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART6_IO_SEL_MASK,
-		     UART6_IO_SEL_M0 << UART6_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio2a_iomux_l,
-		     GPIO2A3_MASK, GPIO2A3_UART6_RXM0 << GPIO2A3_SHIFT);
-	rk_clrsetreg(&grf->gpio2a_iomux_h,
-		     GPIO2A4_MASK, GPIO2A4_UART6_TXM0 << GPIO2A4_SHIFT);
-#else
-	/* UART6 M1 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART6_IO_SEL_MASK,
-		     UART6_IO_SEL_M1 << UART6_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio1d_iomux_h,
-		     GPIO1D6_MASK | GPIO1D5_MASK,
-		     GPIO1D6_UART6_RXM1 << GPIO1D6_SHIFT |
-		     GPIO1D5_UART6_TXM1 << GPIO1D5_SHIFT);
-#endif
+#define UART UART6
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe6b0000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	/* UART7 M0 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART7_IO_SEL_MASK,
-		     UART7_IO_SEL_M0 << UART7_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio2a_iomux_h,
-		     GPIO2A6_MASK | GPIO2A5_MASK,
-		     GPIO2A6_UART7_TXM0 << GPIO2A6_SHIFT |
-		     GPIO2A5_UART7_RXM0 << GPIO2A5_SHIFT);
-#elif defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 1)
-	/* UART7 M1 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART7_IO_SEL_MASK,
-		     UART7_IO_SEL_M1 << UART7_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio3c_iomux_h,
-		     GPIO3C5_MASK | GPIO3C4_MASK,
-		     GPIO3C5_UART7_RXM1 << GPIO3C5_SHIFT |
-		     GPIO3C4_UART7_TXM1 << GPIO3C4_SHIFT);
-#else
-	/* UART7 M2 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART7_IO_SEL_MASK,
-		     UART7_IO_SEL_M2 << UART7_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio4a_iomux_l,
-		     GPIO4A3_MASK | GPIO4A2_MASK,
-		     GPIO4A3_UART7_RXM2 << GPIO4A3_SHIFT |
-		     GPIO4A2_UART7_TXM2 << GPIO4A2_SHIFT);
-#endif
+#define UART UART7
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe6c0000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	/* UART8 M0 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART8_IO_SEL_MASK,
-		     UART8_IO_SEL_M0 << UART8_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio2c_iomux_h,
-		     GPIO2C6_MASK | GPIO2C5_MASK,
-		     GPIO2C6_UART8_RXM0 << GPIO2C6_SHIFT |
-		     GPIO2C5_UART8_TXM0 << GPIO2C5_SHIFT);
-#else
-	/* UART8 M1 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART8_IO_SEL_MASK,
-		     UART8_IO_SEL_M1 << UART8_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio2d_iomux_h,
-		     GPIO2D7_MASK | GPIO3A0_MASK,
-		     GPIO2D7_UART8_TXM1 << GPIO2D7_SHIFT |
-		     GPIO3A0_UART8_RXM1 << GPIO3A0_SHIFT);
-#endif
+#define UART UART8
 #elif defined(CONFIG_DEBUG_UART_BASE) && (CONFIG_DEBUG_UART_BASE == 0xfe6d0000)
-	static struct rk3568_grf * const grf = (void *)GRF_BASE;
-
-#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 0)
-	/* UART9 M0 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART9_IO_SEL_MASK,
-		     UART9_IO_SEL_M0 << UART9_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio2a_iomux_h,
-		     GPIO2A7_MASK, GPIO2A7_UART9_RXM0 << GPIO2A7_SHIFT);
-	rk_clrsetreg(&grf->gpio2b_iomux_l,
-		     GPIO2B0_MASK, GPIO2B0_UART9_TXM0 << GPIO2B0_SHIFT);
-#elif defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && \
-	(CONFIG_ROCKCHIP_UART_MUX_SEL_M == 1)
-	/* UART9 M1 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART9_IO_SEL_MASK,
-		     UART9_IO_SEL_M1 << UART9_IO_SEL_SHIFT);
-
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio4c_iomux_h,
-		     GPIO4C6_MASK | GPIO4C5_MASK,
-		     GPIO4C6_UART9_RXM1 << GPIO4C6_SHIFT |
-		     GPIO4C5_UART9_TXM1 << GPIO4C5_SHIFT);
+#define UART UART9
+#endif
+#if defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && (CONFIG_ROCKCHIP_UART_MUX_SEL_M == 2)
+#define UART_M M2
+#elif defined(CONFIG_ROCKCHIP_UART_MUX_SEL_M) && (CONFIG_ROCKCHIP_UART_MUX_SEL_M == 1)
+#define UART_M M1
 #else
-	/* UART9 M2 */
-	rk_clrsetreg(&grf->iofunc_sel4, UART9_IO_SEL_MASK,
-		     UART9_IO_SEL_M2 << UART9_IO_SEL_SHIFT);
+#define UART_M M0
+#endif
+SELECT_UART(UART0, M0)
 
-	/* Switch iomux */
-	rk_clrsetreg(&grf->gpio4a_iomux_h,
-		     GPIO4A5_MASK | GPIO4A4_MASK,
-		     GPIO4A5_UART9_RXM2 << GPIO4A5_SHIFT |
-		     GPIO4A4_UART9_TXM2 << GPIO4A4_SHIFT);
-#endif
-#endif
+SWITCH_IOMUX_RX(UART0, M0);
+SWITCH_IOMUX_TX(UART0, M0);
+
 }
 
 int arch_cpu_init(void)
